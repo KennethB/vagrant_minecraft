@@ -12,13 +12,15 @@ TRAVIS=$1
 # https://github.com/stephen-mw/vagrant_minecraft
 
 # Some default variables to get the ball started
-VERSION='https://s3.amazonaws.com/Minecraft.Download/versions/1.8/minecraft_server.1.8.jar'
+VERSION='https://s3.amazonaws.com/Minecraft.Download/versions/1.8.9/minecraft_server.1.8.9.jar'
 WORK_DIR='/opt/minecraft'
 
 # The only required package is openjdk-6
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y --no-install-recommends openjdk-6-jre-headless
+apt-get upgrade -y
+apt-get autoremove -y
+apt-get install -y --no-install-recommends openjdk-7-jre-headless
 
 # We want to save persistent files, so we'll symlink over that directory
 if [[ -z "${TRAVIS}" ]]; then
@@ -36,14 +38,14 @@ test -f "${VERSION}" || wget --header=${HEADER} --quiet "${VERSION}"
 cat > /etc/init/minecraft.conf <<MINECRAFT_CONF
 # Minecraft upstart script
 
-start on (local-filesystems and net-device-up IFACE!=lo)
+start on local-filesystems and net-device-up IFACE=eth1
 stop on [!12345]
 
 respawn
 
 chdir ${WORK_DIR}
 
-exec java -Xmx1024M -Xms1024M -jar minecraft_server.1.8.jar nogui > /opt/minecraft/logs/service.log 2>&1
+exec java -Xmx1024M -Xms1024M -jar minecraft_server.1.8.9.jar nogui > /opt/minecraft/logs/service.log 2>&1
 MINECRAFT_CONF
 
 # A logrotate script to keep the minecraft server log from getting too large
@@ -64,7 +66,7 @@ eula=TRUE
 EULA
 
 initctl reload-configuration
-service minecraft start
+#service minecraft start
 
 # Delete the useless vagrant MOTD and install our own
 test -f /etc/motd.tail && rm /etc/motd.tail
